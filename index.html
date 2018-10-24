@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>WEB GIS SULAWESI UTARA</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+		<meta name="mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="theme-color" content="#000000">
+		<meta name="description" content="">
+		<meta name="author" content="">
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css">
+		<link rel="stylesheet" href="css/L.Control.BetterScale.css">
+		<link rel="stylesheet" href="https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-locatecontrol/v0.43.0/L.Control.Locate.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"> 
+
+		<style>
+		   html, body, #map {
+		     height: 100%;
+		     width: 100%;
+		     margin: 0px;
+		   }
+		</style> 
+</head>
+<body>
+		<script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"></script>
+		<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+		<script src="https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-locatecontrol/v0.43.0/L.Control.Locate.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+		<script src="js/L.Control.BetterScale.js"></script> 
+	
+
+	<div class="modal fade" id="featureModal" tabindex="-1" role="dialog">
+		   <div class="modal-dialog">
+			  <div class="modal-content">
+				 <div class="modal-header">
+					<button class="close" type="button" data-dismiss="modal" aria-hidden="true">×</button>
+					<h4 class="modal-title text-primary" id="feature-title"></h4>
+				 </div>
+				 <div class="modal-body" id="feature-info"></div>
+				 <div class="modal-footer">
+					<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+				 </div>
+			  </div>
+		   </div>
+		</div> 
+
+		<div id="map"></div>
+
+			<script>
+			   var map = L.map('map').setView([1.953,124.008],6.79);
+			   var basemap1 = L.tileLayer('http://a.tile.stamen.com/terrain/{z}/{x}/{y}.png', {
+			     attribution: 'Stamen Terrain | <a href="https://drive.google.com/file/d/119jqa8pkykB7sbDc7h4yM0Y-AIUsTVmU/view?usp=sharing" target="_blank">Surono</a>'
+			   });
+
+			   var basemap2 = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+			   maxZoom: 20,
+			   subdomains:['mt0','mt1','mt2','mt3'],
+			   attribution: 'Google Hybrid | <a href="https://drive.google.com/file/d/119jqa8pkykB7sbDc7h4yM0Y-AIUsTVmU/view?usp=sharing" target="_blank">Surono</a>'
+			});
+
+			var basemap3 = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+			   maxZoom: 20,
+			   subdomains:['mt0','mt1','mt2','mt3'],
+			   attribution: 'Google Streets | <a href="https://drive.google.com/file/d/119jqa8pkykB7sbDc7h4yM0Y-AIUsTVmU/view?usp=sharing" target="_blank">Surono</a>'
+			}); 		
+		   basemap3.addTo(map);
+
+		var adminkab_color = {
+					"BOLAANG MONGONDOW":"#ffffc0", 
+					"MINAHASA SELATAN":"#ffffc0", 
+					"BITUNG":"#ffffc0", 
+					"MINAHASA UTARA":"#ffffc0", 
+					"BOLAANG MONGONDOW UTARA":"#1a9641", 
+					"BOLAANG MONGONDOW SELATAN":"#1a9641", 
+					"BOLAANG MONGONDOW TIMUR":"#1a9641", 
+					"SIAU TAGULANDANG BIARO":"#1a9641", 
+					"KEPULAUAN TALAUD":"#1a9641", 
+					"KOTAMOBAGU":"#a6d96a", 
+					"TOMOHON":"#a6d96a", 
+					"MINAHASA TENGGARA":"#a6d96a", 
+					"KEPULAUAN SANGIHE":"#a6d96a", 
+					"MINAHASA":"#fdae61","MANADO":"#d7171c"
+					};
+		var adminkab = L.geoJson(null, {
+		   style: function (feature) {
+		      return {
+		         fillColor:adminkab_color [feature.properties.KABUPATEN],
+		         fillOpacity: 0.9,
+		         color: "black",
+		         weight: 1,
+		         opacity: 1
+		      };
+		   },
+			onEachFeature: function (feature, layer) {
+				if (feature.properties) {
+			   	var content = "<table class='table table-striped table-bordered table-condensed'>" +
+				  "<tr><th>Kabupaten/Kota</th><td>" + feature.properties.KABUPATEN + "</td></tr>" +
+				  "<tr><th>Jumlah Penduduk</th><td>" + feature.properties.PENDUDUK + "</td></tr>" +
+				  "<tr><th>Lambang Kabupaten</th><td>" + "<img src='" + feature.properties.LAMBANG + "' width='100'>" + "</td></tr>" +
+				  "</table>";
+			    layer.on({
+				click: function (e) {
+					  $("#feature-title").html(feature.properties.KABUPATEN);
+					  $("#feature-info").html(content);
+					  $("#featureModal").modal("show");
+					 }
+				  });
+			   }
+			}
+			});
+		$.getJSON("data/kabsulut2.geojson", function (data) {
+		   adminkab.addData(data);
+		   map.addLayer(adminkab);
+		});
+
+		L.control.betterscale({
+		 metric: true,
+		 imperial: false
+		}).addTo(map);
+
+		var baseMaps = {
+			'Stamen terrain': basemap1,
+			'Google Hybrid' : basemap2,
+			'Google Streets' : basemap3
+		};
+		var Layers = {
+		      'Jumlah Penduduk <br> <img src = "logo/jmlh.png">': adminkab
+		};
+		var layerControl = L.control.layers(baseMaps, Layers, {collapsed:true});
+		layerControl.addTo(map);
+
+		var locateControl = L.control.locate({ 
+			   position: "topleft",
+			   drawCircle: true,
+			   follow: true,
+			   setView: true,
+			   keepCurrentZoomLevel: false,
+			   markerStyle: {
+			      weight: 1,
+			      opacity: 0.8,
+			      fillOpacity: 0.8,
+			   },
+			   circleStyle: {
+			      weight: 1,
+			      clickable: false,
+			   },
+			   icon: "fa fa-map-marker",
+			   metric: true,
+			   strings: {
+			      title: "Klik untuk mengetahui lokasimu",
+			      popup: "Lokasimu sekarang di sini. Akurasi {distance} {unit}",
+			      outsideMapBoundsMsg: "Kamu berada di luar area peta"
+			   },
+			   locateOptions: {
+			      maxZoom: 15,
+			      watch: true,
+			      enableHighAccuracy: true,
+			      maximumAge: 10000,
+			      timeout: 10000
+			   },
+			}).addTo(map);
+
+		L.Control.Watermark = L.Control.extend({
+			   onAdd: function(map) {
+				  var img = L.DomUtil.create('img');
+				  img.src = 'logo/oblique.png';
+				  img.style.width = '100px';
+				  return img;
+			   },
+			   onRemove: function(map) {
+				
+			   }
+			});
+			L.control.watermark = function(opts) {
+			   return new L.Control.Watermark(opts);
+			}
+			L.control.watermark({ position: 'bottomleft' }).addTo(map);
+	</script>
+</body>
+</html>
